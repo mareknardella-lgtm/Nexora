@@ -99,8 +99,8 @@ flowchart TD
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/nexora.git
-cd nexora
+git clone https://github.com/mareknardella-lgtm/Nexora.git
+cd Nexora
 
 # Install dependencies
 npm install
