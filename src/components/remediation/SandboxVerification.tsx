@@ -10,6 +10,7 @@ import {
   RotateCw
 } from 'lucide-react';
 import { formatJson } from '@/lib/utils';
+import { playTick, playSuccessChime } from '@/lib/sound';
 
 interface SandboxVerificationProps {
   probeResult: ProbeExecutionResult | null;
@@ -32,11 +33,15 @@ export const SandboxVerification: React.FC<SandboxVerificationProps> = ({
   }
 
   const handleRunVerification = () => {
+    playTick();
     setIsVerifying(true);
     setTimeout(() => {
       const res = runSandboxVerification(probeResult, activePreset);
       setResult(res);
       setIsVerifying(false);
+      if (res.verified) {
+        playSuccessChime();
+      }
     }, 320);
   };
 

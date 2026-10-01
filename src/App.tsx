@@ -23,7 +23,20 @@ import { AuditHistoryTab } from '@/components/inspection/AuditHistoryTab';
 import { TrafficSnifferModal } from '@/components/probe/TrafficSnifferModal';
 import { DemoWalkthroughModal } from '@/components/common/DemoWalkthroughModal';
 import { ApiKeyModal } from '@/components/common/ApiKeyModal';
+import { TrapPlaygroundModal } from '@/components/modals/TrapPlaygroundModal';
+import { BenchmarksModal } from '@/components/modals/BenchmarksModal';
+import { ArchitectureDrawer } from '@/components/modals/ArchitectureDrawer';
+import { CertifiedDossierModal } from '@/components/modals/CertifiedDossierModal';
+import { NexoraGraph } from '@/graph/NexoraGraph';
 import { ToastContainer, ToastMessage } from '@/components/common/Toast';
+import {
+  playTick,
+  playProbeLaunch,
+  playSuccessChime,
+  playDivergenceWarning,
+  isSoundEnabled,
+  setSoundEnabled
+} from '@/lib/sound';
 
 import {
   AlertOctagon,
@@ -34,7 +47,11 @@ import {
   Info,
   Award,
   History,
-  Radio
+  Radio,
+  Layers,
+  Flame,
+  BarChart2,
+  FileText
 } from 'lucide-react';
 
 export function App() {
@@ -66,16 +83,33 @@ export function App() {
   const [auditRecords, setAuditRecords] = useState<IncidentAuditRecord[]>([]);
 
   // Active Viewport Tab on Right Column
-  const [activeTab, setActiveTab] = useState<'anomalies' | 'ai' | 'remediation' | 'sandbox' | 'audit'>('anomalies');
+  const [activeTab, setActiveTab] = useState<'anomalies' | 'graph' | 'ai' | 'remediation' | 'sandbox' | 'audit'>('anomalies');
 
   // Modals & Notifications
   const [isDemoWalkthroughOpen, setIsDemoWalkthroughOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isSnifferModalOpen, setIsSnifferModalOpen] = useState(false);
+  const [isTrapModalOpen, setIsTrapModalOpen] = useState(false);
+  const [isBenchmarksModalOpen, setIsBenchmarksModalOpen] = useState(false);
+  const [isArchitectureDrawerOpen, setIsArchitectureDrawerOpen] = useState(false);
+  const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
+  const [soundEnabled, setSoundEnabledState] = useState(() => isSoundEnabled());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [userApiKey, setUserApiKey] = useState<string>(() => {
     return typeof window !== 'undefined' ? localStorage.getItem('nexora_ai_api_key') || '' : '';
   });
+
+  const handleToggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    setSoundEnabledState(next);
+    if (next) playTick();
+  };
+
+  const handleTabChange = (tab: 'anomalies' | 'graph' | 'ai' | 'remediation' | 'sandbox' | 'audit') => {
+    playTick();
+    setActiveTab(tab);
+  };
 
   const addToast = useCallback((type: 'success' | 'error' | 'info', title: string, description?: string) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
@@ -99,6 +133,7 @@ export function App() {
 
   // Run Probe Execution Workflow
   const handleDispatchProbe = useCallback(async () => {
+    playProbeLaunch();
     setIsProbing(true);
     setIsAiDiagnosing(true);
 
@@ -118,6 +153,12 @@ export function App() {
 
       setProbeResult(result);
       setTotalProbesRun((prev) => prev + 1);
+
+      if (result.passed) {
+        playSuccessChime();
+      } else {
+        playDivergenceWarning();
+      }
 
       // Record in historical audit log
       const auditRec: IncidentAuditRecord = {
@@ -166,6 +207,7 @@ export function App() {
 
   // Handle Preset Switching
   const handleSelectPreset = (preset: EndpointPreset) => {
+    playTick();
     setIsCustom(false);
     setActivePreset(preset);
     setMethod(preset.method);
@@ -177,6 +219,7 @@ export function App() {
   };
 
   const handleSelectCustom = () => {
+    playTick();
     setIsCustom(true);
     setUrl('https://api.github.com/users/octocat');
     setMethod('GET');
@@ -205,13 +248,40 @@ export function App() {
     <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Top Navbar */}
       <Navbar
-        onOpenDemoWalkthrough={() => setIsDemoWalkthroughOpen(true)}
-        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
-        onOpenSnifferModal={() => setIsSnifferModalOpen(true)}
+        onOpenDemoWalkthrough={() => {
+          playTick();
+          setIsDemoWalkthroughOpen(true);
+        }}
+        onOpenApiKeyModal={() => {
+          playTick();
+          setIsApiKeyModalOpen(true);
+        }}
+        onOpenSnifferModal={() => {
+          playTick();
+          setIsSnifferModalOpen(true);
+        }}
+        onOpenTrapModal={() => {
+          playTick();
+          setIsTrapModalOpen(true);
+        }}
+        onOpenBenchmarksModal={() => {
+          playTick();
+          setIsBenchmarksModalOpen(true);
+        }}
+        onOpenArchitectureModal={() => {
+          playTick();
+          setIsArchitectureDrawerOpen(true);
+        }}
+        onOpenDossierModal={() => {
+          playTick();
+          setIsDossierModalOpen(true);
+        }}
         hasCustomKey={!!userApiKey}
         totalProbesRun={totalProbesRun}
         environment={environment}
         setEnvironment={setEnvironment}
+        soundEnabled={soundEnabled}
+        onToggleSound={handleToggleSound}
       />
 
       {/* Main Content Workbench */}
@@ -232,22 +302,64 @@ export function App() {
               </p>
             </div>
 
-            {/* Quick Demo Play Button for Judges */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Demo Action Buttons for Judges */}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
-                onClick={() => setIsSnifferModalOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-950/60 border border-purple-800/70 text-purple-300 hover:border-purple-500 hover:text-white transition-all shadow-md cursor-pointer"
+                onClick={() => {
+                  playTick();
+                  setIsTrapModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-950/60 border border-rose-800/70 text-rose-300 hover:border-rose-500 hover:text-white transition-all shadow-md cursor-pointer"
+                title="View Real-world Invariant Traps Lab"
               >
-                <Radio className="h-4 w-4 text-purple-400" />
+                <Flame className="h-3.5 w-3.5 text-rose-400" />
+                <span>Trap Lab</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  playTick();
+                  setIsBenchmarksModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-950/60 border border-amber-800/70 text-amber-300 hover:border-amber-500 hover:text-white transition-all shadow-md cursor-pointer"
+                title="View Empirical Benchmarks & Speedups"
+              >
+                <BarChart2 className="h-3.5 w-3.5 text-amber-400" />
+                <span>Benchmarks</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  playTick();
+                  setIsDossierModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-950/60 border border-emerald-800/70 text-emerald-300 hover:border-emerald-500 hover:text-white transition-all shadow-md cursor-pointer"
+                title="View Official Verification Dossier"
+              >
+                <FileText className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Dossier</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  playTick();
+                  setIsSnifferModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-purple-950/60 border border-purple-800/70 text-purple-300 hover:border-purple-500 hover:text-white transition-all shadow-md cursor-pointer"
+              >
+                <Radio className="h-3.5 w-3.5 text-purple-400" />
                 <span>eBPF Sniffer</span>
               </button>
 
               <button
-                onClick={() => setIsDemoWalkthroughOpen(true)}
+                onClick={() => {
+                  playTick();
+                  setIsDemoWalkthroughOpen(true);
+                }}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-cyan-950 to-blue-950 border border-cyan-800/70 text-cyan-300 hover:border-cyan-500 hover:text-white transition-all shadow-md cursor-pointer"
               >
                 <Zap className="h-4 w-4 text-cyan-400" />
-                <span>4-Minute Demo Pitch Guide</span>
+                <span>4-Min Pitch</span>
               </button>
             </div>
           </div>
@@ -314,8 +426,8 @@ export function App() {
             {/* Viewport Tabs Navigation */}
             <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 shadow-md">
               <button
-                onClick={() => setActiveTab('anomalies')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                onClick={() => handleTabChange('anomalies')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'anomalies'
                     ? 'bg-slate-800 text-rose-300 shadow-sm border border-slate-700'
                     : 'text-slate-400 hover:text-slate-200'
@@ -331,8 +443,21 @@ export function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('ai')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                onClick={() => handleTabChange('graph')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'graph'
+                    ? 'bg-slate-800 text-cyan-300 shadow-sm border border-slate-700'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Contract DAG</span>
+                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+              </button>
+
+              <button
+                onClick={() => handleTabChange('ai')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'ai'
                     ? 'bg-slate-800 text-cyan-300 shadow-sm border border-slate-700'
                     : 'text-slate-400 hover:text-slate-200'
@@ -343,8 +468,8 @@ export function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('remediation')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                onClick={() => handleTabChange('remediation')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'remediation'
                     ? 'bg-slate-800 text-indigo-300 shadow-sm border border-slate-700'
                     : 'text-slate-400 hover:text-slate-200'
@@ -355,8 +480,8 @@ export function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('sandbox')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                onClick={() => handleTabChange('sandbox')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'sandbox'
                     ? 'bg-emerald-950/80 text-emerald-300 shadow-sm border border-emerald-800'
                     : 'text-slate-400 hover:text-slate-200'
@@ -368,8 +493,8 @@ export function App() {
               </button>
 
               <button
-                onClick={() => setActiveTab('audit')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                onClick={() => handleTabChange('audit')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   activeTab === 'audit'
                     ? 'bg-slate-800 text-slate-200 shadow-sm border border-slate-700'
                     : 'text-slate-400 hover:text-slate-200'
@@ -389,6 +514,13 @@ export function App() {
             <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5 min-h-[520px] shadow-xl">
               {activeTab === 'anomalies' && (
                 <DriftInspectionTab probeResult={probeResult} />
+              )}
+
+              {activeTab === 'graph' && (
+                <NexoraGraph
+                  probeResult={probeResult}
+                  activePreset={isCustom ? undefined : activePreset}
+                />
               )}
 
               {activeTab === 'ai' && (
@@ -436,22 +568,67 @@ export function App() {
             Computer Science + AI (Technology) Track • Innovation Without Limits
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-slate-400">
             <button
-              onClick={() => setIsSnifferModalOpen(true)}
-              className="hover:text-purple-400 transition-colors"
+              onClick={() => {
+                playTick();
+                setIsTrapModalOpen(true);
+              }}
+              className="hover:text-rose-400 transition-colors cursor-pointer"
+            >
+              Trap Lab
+            </button>
+            <button
+              onClick={() => {
+                playTick();
+                setIsBenchmarksModalOpen(true);
+              }}
+              className="hover:text-amber-400 transition-colors cursor-pointer"
+            >
+              Benchmarks
+            </button>
+            <button
+              onClick={() => {
+                playTick();
+                setIsArchitectureDrawerOpen(true);
+              }}
+              className="hover:text-cyan-400 transition-colors cursor-pointer"
+            >
+              Architecture
+            </button>
+            <button
+              onClick={() => {
+                playTick();
+                setIsDossierModalOpen(true);
+              }}
+              className="hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              Audit Dossier
+            </button>
+            <button
+              onClick={() => {
+                playTick();
+                setIsSnifferModalOpen(true);
+              }}
+              className="hover:text-purple-400 transition-colors cursor-pointer"
             >
               eBPF Sniffer
             </button>
             <button
-              onClick={() => setIsDemoWalkthroughOpen(true)}
-              className="hover:text-cyan-400 transition-colors"
+              onClick={() => {
+                playTick();
+                setIsDemoWalkthroughOpen(true);
+              }}
+              className="hover:text-cyan-400 transition-colors cursor-pointer"
             >
-              Demo Walkthrough
+              4-Min Pitch
             </button>
             <button
-              onClick={() => setIsApiKeyModalOpen(true)}
-              className="hover:text-cyan-400 transition-colors"
+              onClick={() => {
+                playTick();
+                setIsApiKeyModalOpen(true);
+              }}
+              className="hover:text-cyan-400 transition-colors cursor-pointer"
             >
               AI Settings
             </button>
@@ -480,6 +657,40 @@ export function App() {
           setIsSnifferModalOpen(false);
           setActiveTab('anomalies');
         }}
+      />
+
+      {/* Trap Playground Modal */}
+      <TrapPlaygroundModal
+        isOpen={isTrapModalOpen}
+        onClose={() => setIsTrapModalOpen(false)}
+        onSelectScenario={(scenarioId) => {
+          const found = INCIDENT_PRESETS.find((p) => p.id === scenarioId);
+          if (found) {
+            handleSelectPreset(found);
+            setIsTrapModalOpen(false);
+          }
+        }}
+      />
+
+      {/* Benchmarks Modal */}
+      <BenchmarksModal
+        isOpen={isBenchmarksModalOpen}
+        onClose={() => setIsBenchmarksModalOpen(false)}
+      />
+
+      {/* Architecture Drawer */}
+      <ArchitectureDrawer
+        isOpen={isArchitectureDrawerOpen}
+        onClose={() => setIsArchitectureDrawerOpen(false)}
+      />
+
+      {/* Certified Dossier Modal */}
+      <CertifiedDossierModal
+        isOpen={isDossierModalOpen}
+        onClose={() => setIsDossierModalOpen(false)}
+        probeResult={probeResult}
+        activePreset={isCustom ? undefined : activePreset}
+        aiReport={aiReport}
       />
 
       {/* API Key Modal */}

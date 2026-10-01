@@ -64,21 +64,27 @@ flowchart TD
 
 | Capability | Description |
 | :--- | :--- |
-| **Active Probe Dispatcher** | Dispatches HTTP probes measuring TTFB, latency percentiles, and runtime status codes. |
+| **Interactive Contract DAG Graph** | Real-time SVG topology visualizer rendering probe trajectory, color-coded invariant nodes (green: holds, red: drift, amber: caution), animated glowing edges, and node inspectors. |
+| **Procedural Web Audio Engine** | Pure Web Audio API procedural synthesizer providing tactile auditory feedback on probe dispatches, sandbox invariant verification, and anomalies without external audio files. |
+| **Active Probe Dispatcher** | Dispatches HTTP probes measuring TTFB, latency percentiles, and runtime status codes with synthetic boundary fuzzing. |
 | **Pre-loaded Incident Presets** | Includes 4 authentic enterprise scenarios: Fintech Payment Cents Drift, Identity Provider Breaking Claim Deletion, Microservice Silent 200 Gateway Outage, and Logistics Geo-Coordinate String Mutation. |
-| **Custom Live Endpoint Mode** | Test any public or internal API endpoint with custom schemas and headers. |
-| **Resilience Scoring (0–100)** | Objective health metric penalizing critical, high, and medium contract anomalies. |
-| **Interactive Drift Anomaly Cards** | Visualizes JSONPath, expected contract rules, actual received values, and quantified impact. |
+| **Custom Live Endpoint Mode** | Test any public or internal API endpoint with custom schemas, HTTP methods, and headers. |
+| **Anti-Pattern Traps Lab** | Interactive stress-test lab illustrating why OpenAPI linters stay green on breaking mutations, why LLM chatbots hallucinate, and how Nexora provides defensible safeguards. |
+| **Empirical Benchmarks Matrix** | Rigorous comparison between static linters, generic LLMs, and Nexora Sentinel (180m -> 30s triage, <2ms sandbox verification, 0.0% hallucination rate). |
+| **Certified Audit Dossier** | Printable/PDF-ready executive audit certificate featuring full telemetry, anomaly diffs, AI diagnosis, and a cryptographic SHA-256 seal. |
+| **System Architecture Drawer** | Slide-over technical drawer detailing the 5-stage verification pipeline, mathematical invariant definitions (I1, I2, I3), and zero-trust privacy. |
 | **AI Root-Cause Isolation** | Provides executive summaries, affected architectural components, and technical depth explanations with confidence scores. |
-| **Monaco Code Workspace** | Embedded syntax-highlighted code editor for TypeScript adapters, JSON Patches, and Vitest test suites. |
-| **1-Click Sandbox Proof** | Runs automated assertions in an isolated execution sandbox proving 100% bug resolution. |
+| **Multi-Language Remediation** | Synthesizes TypeScript adapters, Python Pydantic v2 schemas, OpenAPI 3.1 JSON Patches, and Vitest regression suites. |
+| **In-Browser Sandbox Proof** | Runs automated assertions in an isolated execution sandbox proving 100% bug resolution in under 2ms. |
 
 ---
 
 ## 5. Technology Stack
 
 * **Frontend:** React 19, TypeScript 6, Vite 8, Tailwind CSS v4, Lucide Icons.
-* **Code Editor:** `@monaco-editor/react` (VS Code engine in browser).
+* **Code Editor:** `@monaco-editor/react` (VS Code Monaco engine embedded in browser).
+* **Audio Engine:** `src/lib/sound.ts` (Procedural Web Audio synthesis).
+* **Graph Engine:** `src/graph/NexoraGraph.tsx` (Interactive SVG DAG with reactive bezier curves).
 * **Core Engine:**
   * `src/lib/engine/schema-validator.ts`: Deterministic AST schema and invariant analyzer.
   * `src/lib/engine/probe-runner.ts`: Probe dispatcher with synthetic chaos injection.
