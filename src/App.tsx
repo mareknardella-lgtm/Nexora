@@ -300,6 +300,34 @@ export function App() {
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
                 Actively probe APIs, detect silent payload mutations, isolate root causes with AI, and synthesize verified client patches with in-browser proof.
               </p>
+
+              {/* Tech Capability Tags */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-cyan-950/70 text-cyan-300 border border-cyan-800/60 hover:border-cyan-500 transition-colors shadow-xs">
+                  #ContractDrift
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-blue-950/70 text-blue-300 border border-blue-800/60 hover:border-blue-500 transition-colors shadow-xs">
+                  #ASTInvariantEngine
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-orange-950/70 text-orange-300 border border-orange-800/60 hover:border-orange-500 transition-colors shadow-xs">
+                  #SyntheticChaos
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-purple-950/70 text-purple-300 border border-purple-800/60 hover:border-purple-500 transition-colors shadow-xs">
+                  #SemanticAI
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-fuchsia-950/70 text-fuchsia-300 border border-fuchsia-800/60 hover:border-fuchsia-500 transition-colors shadow-xs">
+                  #eBPFTraffic
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/60 hover:border-emerald-500 transition-colors shadow-xs">
+                  #PydanticV2
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-indigo-950/70 text-indigo-300 border border-indigo-800/60 hover:border-indigo-500 transition-colors shadow-xs">
+                  #TypeScriptPatch
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium bg-teal-950/70 text-teal-300 border border-teal-800/60 hover:border-teal-500 transition-colors shadow-xs">
+                  #ZeroTrustSandbox
+                </span>
+              </div>
             </div>
 
             {/* Quick Demo Action Buttons for Judges */}

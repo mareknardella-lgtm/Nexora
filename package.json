@@ -1,7 +1,29 @@
 {
   "name": "nexora",
+  "version": "2.0.0",
+  "description": "Autonomous API Incident Triage & Contract Drift Intelligence Platform (EurekaDEV 2026)",
+  "keywords": [
+    "eurekadev-2026",
+    "hackathon",
+    "contract-testing",
+    "contract-drift",
+    "api-observability",
+    "ast-engine",
+    "openapi-3-1",
+    "ebpf-sniffer",
+    "synthetic-fuzzing",
+    "pydantic-v2",
+    "typescript",
+    "react-19",
+    "zero-trust"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mareknardella-lgtm/Nexora.git"
+  },
+  "author": "Marek Nardella",
+  "license": "MIT",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

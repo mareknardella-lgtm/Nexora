@@ -1,5 +1,18 @@
 # Nexora Sentinel
 ### Autonomous API Incident Triage & Contract Drift Intelligence Platform
+
+[![EurekaDEV 2026](https://img.shields.io/badge/EurekaDEV_2026-Coding_Track-06b6d4?style=for-the-badge&logo=codeforces&logoColor=white)](https://github.com/mareknardella-lgtm/Nexora)
+[![Release](https://img.shields.io/badge/Release-v2.0.0--eurekadev-10b981?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mareknardella-lgtm/Nexora/releases)
+[![Build Status](https://img.shields.io/badge/Build-Passing-emerald?style=for-the-badge&logo=vite&logoColor=white)](https://github.com/mareknardella-lgtm/Nexora)
+[![Tests](https://img.shields.io/badge/Tests-7%2F7_Passed-brightgreen?style=for-the-badge&logo=vitest&logoColor=white)](https://github.com/mareknardella-lgtm/Nexora)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Security](https://img.shields.io/badge/Security-Zero--Trust_In--Browser-8b5cf6?style=for-the-badge&logo=shield&logoColor=white)](https://github.com/mareknardella-lgtm/Nexora)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+> **Repository Tags & Topics:**  
+> `#autonomous-triage` • `#contract-drift` • `#ast-invariant-engine` • `#ebpf-traffic-sniffer` • `#synthetic-chaos-fuzzing` • `#pydantic-v2` • `#openapi-3-1` • `#zero-trust` • `#eurekadev-2026`
+
 **Track:** Coding Track — Computer Science + AI (Technology)  
 **Hackathon:** EurekaDEV 2026 — Innovation Without Limits  
 **Submission Status:** Production-Ready Functional Prototype  
