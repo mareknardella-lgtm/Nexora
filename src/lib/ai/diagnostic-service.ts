@@ -12,8 +12,13 @@ export async function runAiDiagnostics(
   _userApiKey?: string
 ): Promise<AiDiagnosticReport> {
   const anomalies = probeResult.anomalies;
-  const { clientPatchTypeScript, contractPatchSchema, regressionTestSuite } =
-    generateRemediationCode(probeResult, preset);
+  const {
+    clientPatchTypeScript,
+    generatedPythonAdapter,
+    contractPatchSchema,
+    regressionTestSuite,
+    generatedGitHubActionWorkflow
+  } = generateRemediationCode(probeResult, preset);
 
   // If the user supplies their own API key and internet is available, we can connect
   // Otherwise, use our Deterministic Semantic Reasoning Engine
@@ -111,7 +116,9 @@ export async function runAiDiagnostics(
     confidenceScore,
     suggestedAction,
     generatedClientPatch: clientPatchTypeScript,
+    generatedPythonAdapter,
     generatedOpenApiDiff: contractPatchSchema,
-    generatedVitestSuite: regressionTestSuite
+    generatedVitestSuite: regressionTestSuite,
+    generatedGitHubActionWorkflow
   };
 }

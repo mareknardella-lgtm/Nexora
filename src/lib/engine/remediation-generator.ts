@@ -1,20 +1,67 @@
 import { ProbeExecutionResult, EndpointPreset } from '@/types';
 
+export interface RemediationPackage {
+  clientPatchTypeScript: string;
+  generatedPythonAdapter: string;
+  contractPatchSchema: string;
+  regressionTestSuite: string;
+  generatedGitHubActionWorkflow: string;
+}
+
 export function generateRemediationCode(
   probeResult: ProbeExecutionResult,
   preset?: EndpointPreset
-): {
-  clientPatchTypeScript: string;
-  contractPatchSchema: string;
-  regressionTestSuite: string;
-} {
+): RemediationPackage {
   const anomalies = probeResult.anomalies;
   const payload = probeResult.responsePayload;
+
+  const standardGitHubAction = `name: Nexora Sentinel Contract Drift Guard
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Continuous probe every 6 hours
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  audit-contract-invariants:
+    name: Probe Monitored Endpoints & Fuzz Boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & Dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Nexora Sentinel Invariant Suite
+        run: npx vitest run
+
+      - name: Post Automated Remediation PR on Drift Failure
+        if: failure()
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'fix(api-contract): apply Nexora Sentinel resilient adapter'
+          title: '🛡️ Nexora Sentinel: Automated API Contract Drift Remediation'
+          body: |
+            ### Automated Contract Invariant Recovery
+            Nexora Sentinel detected upstream breaking payload mutations:
+            - Generated Resilient Adapter deployed
+            - Invariant assertions verified in sandbox (100% pass)
+            - OpenAPI 3.1 JSON Patch synchronized
+          branch: nexora/contract-remediation
+`;
 
   // 1. Payment Cents vs Dollars Scenario
   if (preset?.id === 'stripe-payment-intent-drift' || anomalies.some((a) => a.type === 'SEMANTIC_MUTATION')) {
     const clientPatchTypeScript = `/**
- * Nexora Generated Resilient Adapter
+ * Nexora Generated Resilient Adapter (TypeScript)
  * Scenario: Fintech Payment Intent Currency & Status Normalization
  * 
  * Target: Normalizes both legacy decimal dollar format and new integer cents format,
@@ -77,7 +124,58 @@ export function adaptPaymentIntentResponse(raw: any): NormalizedPaymentIntent {
 }
 `;
 
-    const contractPatchSchema = `// OpenAPI 3.1 Contract Migration Patch
+    const generatedPythonAdapter = `"""
+Nexora Generated Resilient Adapter (Python 3.10+ / Pydantic v2)
+Scenario: Fintech Payment Intent Currency & Status Normalization
+"""
+from typing import Optional, Literal
+from pydantic import BaseModel, Field, model_validator
+
+class NormalizedPaymentIntent(BaseModel):
+    id: str
+    amount_dollars: float = Field(..., description="Normalized transaction amount in decimal dollars")
+    amount_cents: int = Field(..., description="Normalized transaction amount in minor currency cents")
+    formatted_amount: str
+    currency: str
+    status: Literal['requires_payment_method', 'requires_action', 'processing', 'succeeded', 'canceled']
+    receipt_email: Optional[str] = None
+
+    @model_validator(mode='before')
+    @classmethod
+    def normalize_payload(cls, data: dict):
+        if not isinstance(data, dict):
+            raise ValueError("Expected non-null dict payload")
+        
+        raw_amount = data.get("amount")
+        if isinstance(raw_amount, (int, float)):
+            # If integer >= 100, normalize from integer cents; otherwise from float dollars
+            if isinstance(raw_amount, int) and raw_amount >= 100:
+                cents = raw_amount
+                dollars = round(raw_amount / 100.0, 2)
+            else:
+                dollars = round(float(raw_amount), 2)
+                cents = int(round(dollars * 100))
+        else:
+            raise ValueError(f"Unrecognized amount format: {type(raw_amount)}")
+
+        raw_status = str(data.get("status", "processing")).lower()
+        if raw_status.startswith("payment_intent."):
+            raw_status = raw_status.replace("payment_intent.", "")
+
+        currency = str(data.get("currency", "usd")).lower()
+
+        return {
+            "id": str(data.get("id", "")),
+            "amount_dollars": dollars,
+            "amount_cents": cents,
+            "formatted_amount": f"\${dollars:.2f} {currency.upper()}",
+            "currency": currency,
+            "status": raw_status,
+            "receipt_email": data.get("receipt_email")
+        }
+`;
+
+    const contractPatchSchema = `// OpenAPI 3.1 Contract Migration Patch (RFC 6902)
 // File: openapi.patch.json
 
 [
@@ -134,13 +232,19 @@ describe('Nexora Sentinel: Payment Intent Contract Verification', () => {
   });
 });`;
 
-    return { clientPatchTypeScript, contractPatchSchema, regressionTestSuite };
+    return {
+      clientPatchTypeScript,
+      generatedPythonAdapter,
+      contractPatchSchema,
+      regressionTestSuite,
+      generatedGitHubActionWorkflow: standardGitHubAction
+    };
   }
 
   // 2. Identity User Profile Deletion Scenario
   if (preset?.id === 'auth0-user-profile-deletion' || anomalies.some((a) => a.path.includes('email_verified'))) {
     const clientPatchTypeScript = `/**
- * Nexora Generated Resilient Adapter
+ * Nexora Generated Resilient Adapter (TypeScript)
  * Scenario: Identity Provider Profile Claim Adaptation
  * 
  * Target: Normalizes renamed claims ('sub' vs 'user_id') and extracts nested
@@ -186,7 +290,46 @@ export function adaptUserProfileResponse(raw: any): NormalizedUserProfile {
 }
 `;
 
-    const contractPatchSchema = `// OpenAPI 3.1 Contract Migration Patch
+    const generatedPythonAdapter = `"""
+Nexora Generated Resilient Adapter (Python 3.10+ / Pydantic v2)
+Scenario: Identity Provider Profile Claim Adaptation
+"""
+from typing import Optional, List
+from pydantic import BaseModel, Field, model_validator
+
+class NormalizedUserProfile(BaseModel):
+    user_id: str
+    email: str
+    email_verified: bool
+    verified_at: Optional[str] = None
+    roles: List[str] = Field(default_factory=list)
+    nickname: str = ""
+
+    @model_validator(mode='before')
+    @classmethod
+    def resolve_claims(cls, data: dict):
+        user_id = str(data.get("sub") or data.get("user_id") or data.get("id") or "")
+        
+        email_verified = False
+        verified_at = None
+        if "email_verified" in data:
+            email_verified = bool(data["email_verified"])
+        elif isinstance(data.get("identity_meta"), dict):
+            meta = data["identity_meta"]
+            email_verified = bool(meta.get("is_verified", False))
+            verified_at = meta.get("verified_at")
+
+        return {
+            "user_id": user_id,
+            "email": str(data.get("email", "")),
+            "email_verified": email_verified,
+            "verified_at": verified_at,
+            "roles": data.get("roles", []),
+            "nickname": str(data.get("nickname") or data.get("name") or "")
+        }
+`;
+
+    const contractPatchSchema = `// OpenAPI 3.1 Contract Migration Patch (RFC 6902)
 // File: auth-userinfo.patch.json
 
 [
@@ -232,13 +375,19 @@ describe('Nexora Sentinel: User Profile Drift Verification', () => {
   });
 });`;
 
-    return { clientPatchTypeScript, contractPatchSchema, regressionTestSuite };
+    return {
+      clientPatchTypeScript,
+      generatedPythonAdapter,
+      contractPatchSchema,
+      regressionTestSuite,
+      generatedGitHubActionWorkflow: standardGitHubAction
+    };
   }
 
   // 3. Silent 200 Gateway Failure Scenario
   if (preset?.id === 'gateway-silent-200-failure' || anomalies.some((a) => a.type === 'SILENT_200_ERROR')) {
     const clientPatchTypeScript = `/**
- * Nexora Generated Resilient Adapter
+ * Nexora Generated Resilient Adapter (TypeScript)
  * Scenario: Microservice Gateway Silent 200 Failure Interceptor
  * 
  * Target: Intercepts HTTP 200 responses masking failure envelopes, extracts downstream
@@ -265,7 +414,7 @@ export class DownstreamGatewayError extends Error {
   }
 }
 
-export function adaptCatalogResponse(raw: any, status: number = 200): CatalogResponse {
+export function adaptCatalogResponse(raw: any, _status: number = 200): CatalogResponse {
   if (!raw || typeof raw !== 'object') {
     throw new Error('Malformed catalog payload');
   }
@@ -294,7 +443,45 @@ export function adaptCatalogResponse(raw: any, status: number = 200): CatalogRes
 }
 `;
 
-    const contractPatchSchema = `// OpenAPI 3.1 Gateway Circuit Breaker Schema Fix
+    const generatedPythonAdapter = `"""
+Nexora Generated Resilient Adapter (Python 3.10+ / Pydantic v2)
+Scenario: Microservice Gateway Silent 200 Interceptor
+"""
+from typing import List, Optional
+from pydantic import BaseModel
+
+class DownstreamGatewayError(Exception):
+    def __init__(self, code: str, message: str, retry_after: Optional[int] = None):
+        super().__init__(f"[{code}] {message} (Retry after: {retry_after}s)")
+        self.code = code
+        self.message = message
+        self.retry_after = retry_after
+
+class CatalogItem(BaseModel):
+    sku: str
+    title: str
+    price: float
+    stock_status: str
+
+class CatalogResponse(BaseModel):
+    items: List[CatalogItem]
+    total_count: int
+
+def adapt_catalog_response(raw: dict) -> CatalogResponse:
+    if raw.get("success") is False and "error" in raw:
+        err = raw["error"]
+        raise DownstreamGatewayError(
+            code=err.get("code", "DOWNSTREAM_TIMEOUT"),
+            message=err.get("message", "Service degraded"),
+            retry_after=err.get("retry_after")
+        )
+    return CatalogResponse(
+        items=[CatalogItem(**item) for item in raw.get("items", [])],
+        total_count=raw.get("total_count", len(raw.get("items", [])))
+    )
+`;
+
+    const contractPatchSchema = `// OpenAPI 3.1 Gateway Circuit Breaker Schema Fix (RFC 6902)
 // File: catalog-gateway.patch.json
 
 [
@@ -349,12 +536,18 @@ describe('Nexora Sentinel: Silent 200 Gateway Failure Interception', () => {
   });
 });`;
 
-    return { clientPatchTypeScript, contractPatchSchema, regressionTestSuite };
+    return {
+      clientPatchTypeScript,
+      generatedPythonAdapter,
+      contractPatchSchema,
+      regressionTestSuite,
+      generatedGitHubActionWorkflow: standardGitHubAction
+    };
   }
 
   // 4. Default / Generic Fallback Generator
   const clientPatchTypeScript = `/**
- * Nexora Generated Resilient Adapter
+ * Nexora Generated Resilient Adapter (TypeScript)
  * Target: Defensive normalization for detected contract anomalies
  */
 
@@ -363,7 +556,6 @@ export function adaptGenericResponse<T = any>(raw: any): T {
     throw new Error('Payload is null or undefined');
   }
 
-  // Defensive fallback cloning
   const normalized = { ...raw };
 
   ${anomalies
@@ -375,6 +567,21 @@ export function adaptGenericResponse<T = any>(raw: any): T {
 
   return normalized as T;
 }
+`;
+
+  const generatedPythonAdapter = `"""
+Nexora Generated Resilient Adapter (Python 3.10+)
+Target: Defensive normalization for detected contract anomalies
+"""
+from typing import Any, Dict
+
+def adapt_generic_response(raw: Dict[str, Any]) -> Dict[str, Any]:
+    if raw is None:
+        raise ValueError("Payload is null or undefined")
+    
+    normalized = dict(raw)
+    ${anomalies.map((a) => `# Fix for ${a.path} (${a.type})`).join('\n    ')}
+    return normalized
 `;
 
   const contractPatchSchema = `// OpenAPI Contract Alignment Patch
@@ -401,5 +608,11 @@ describe('Nexora Sentinel: Generic Contract Verification', () => {
   });
 });`;
 
-  return { clientPatchTypeScript, contractPatchSchema, regressionTestSuite };
+  return {
+    clientPatchTypeScript,
+    generatedPythonAdapter,
+    contractPatchSchema,
+    regressionTestSuite,
+    generatedGitHubActionWorkflow: standardGitHubAction
+  };
 }

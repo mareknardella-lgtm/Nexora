@@ -81,8 +81,10 @@ export interface AiDiagnosticReport {
   confidenceScore: number; // 0.0 - 1.0
   suggestedAction: string;
   generatedClientPatch: string;
+  generatedPythonAdapter: string;
   generatedOpenApiDiff: string;
   generatedVitestSuite: string;
+  generatedGitHubActionWorkflow: string;
 }
 
 export interface SandboxVerificationResult {
@@ -93,4 +95,30 @@ export interface SandboxVerificationResult {
   assertionsPassed: number;
   totalAssertions: number;
   log: string[];
+}
+
+export interface IncidentAuditRecord {
+  id: string;
+  timestamp: string;
+  scenarioTitle: string;
+  url: string;
+  method: HttpMethod;
+  httpStatus: number;
+  resilienceScore: number;
+  anomaliesCount: number;
+  criticalCount: number;
+  remediated: boolean;
+}
+
+export interface PassiveSnifferPacket {
+  id: string;
+  timestamp: string;
+  sourceService: string;
+  targetService: string;
+  method: HttpMethod;
+  path: string;
+  status: number;
+  latencyMs: number;
+  driftDetected: boolean;
+  anomalyType?: AnomalyType;
 }
