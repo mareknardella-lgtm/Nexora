@@ -27,3 +27,4 @@ dist-ssr
 *.mp4
 *.webm
 public/video/
+*.zip
