@@ -13,6 +13,14 @@
 > **Repository Tags & Topics:**  
 > `#autonomous-triage` • `#contract-drift` • `#ast-invariant-engine` • `#ebpf-traffic-sniffer` • `#synthetic-chaos-fuzzing` • `#pydantic-v2` • `#openapi-3-1` • `#zero-trust` • `#eurekadev-2026`
 
+<br/>
+
+<div align="center">
+  <img src="public/thumbnail.jpg" alt="Nexora Sentinel — EurekaDEV 2026 Project Thumbnail" width="100%" />
+</div>
+
+<br/>
+
 **Track:** Coding Track — Computer Science + AI (Technology)  
 **Hackathon:** EurekaDEV 2026 — Innovation Without Limits  
 **Submission Status:** Production-Ready Functional Prototype  
